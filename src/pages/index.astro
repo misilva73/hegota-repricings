@@ -148,6 +148,29 @@ const stats = [
         Take any one away and the bandwidth or state-growth constraint reasserts itself.
         Together, they're the minimal viable bundle.
       </p>
+
+      <div class="pending-card">
+        <div class="pending-card-head">
+          <span class="pending-num">EIP-8037</span>
+          <span class="pending-status">No EIP yet</span>
+        </div>
+        <h3 class="pending-title">One more knob: recalibrate CPSB</h3>
+        <p class="pending-body">
+          Raising the limit also means revisiting the <strong>CPSB</strong> (cost per state
+          byte) parameter from <strong>EIP-8037</strong>, which meters state growth. There's
+          no EIP for this yet — we first want to see how users respond to the current value in
+          Glamsterdam before committing to a new one.
+        </p>
+        <p class="pending-body">
+          To hold the same <strong>120&nbsp;GiB/year</strong> state-growth target as the block
+          does 3× more work, a simple linear scaling from the 150M reference limit suggests:
+        </p>
+        <div class="pending-value">
+          <span class="pending-value-from">1,530<small>gas/byte today</small></span>
+          <span class="pending-arrow">→</span>
+          <span class="pending-value-to">~4,590<small>gas/byte at 450M</small></span>
+        </div>
+      </div>
     </div>
   </section>
 
@@ -159,21 +182,19 @@ const stats = [
           <span class="eyebrow">A deliberate omission</span>
           <h2>Why not reprice compute?</h2>
           <p>
-            A natural question: shouldn't we also reprice the EVM's overpriced and
-            underpriced opcodes? The analysis says it's <strong>low leverage</strong>.
-            There are dozens of gas parameters to retune — roughly
-            <strong>62 operations</strong> are mispriced — and getting them all right is
-            fiddly and risky.
+            A natural question: shouldn't we also reprice the compute operations that
+            are overpriced? The analysis says it's <strong>low leverage</strong>.
+            There are roughly <strong>62 mispriced operations</strong> and getting them
+            all right is risky and requires a lot of testing and benchmarking work.
           </p>
           <p>
-            The payoff is small: compute waste falls from about
+            The payoff is small: throughput loss falls from about
             <strong>12.4% to 2.6%</strong>, which works out to only around a
             <strong>10% gain in average throughput</strong>. A lot of surface area to
-            change, for a modest average improvement — so compute repricing is left out of
-            the minimal set.
+            change, for a modest average improvement.
           </p>
           <a class="btn btn--primary" href={fracgasUrl} target="_blank" rel="noopener">
-            See the fractional-gas evidence ↗
+            See the analysis ↗
           </a>
           <p class="compute-attr">
             Interactive breakdown of per-opcode mispricing on
@@ -193,7 +214,7 @@ const stats = [
           <ul class="viz-list">
             <li><span>Gas params to retune</span><strong>dozens</strong></li>
             <li><span>Mispriced operations</span><strong>~62</strong></li>
-            <li><span>Compute waste today</span><strong>~12.4%</strong></li>
+            <li><span>Throughput loss today</span><strong>~12.4%</strong></li>
             <li><span>After repricing</span><strong>~2.6%</strong></li>
           </ul>
         </div>
@@ -359,6 +380,66 @@ const stats = [
   .card-grid-note {
     text-align: center; color: var(--text-faint); font-size: 0.95rem;
     margin: 1.75rem auto 0; max-width: 60ch;
+  }
+  .pending-card {
+    margin: 2rem auto 0;
+    max-width: 720px;
+    background: var(--bg-elev);
+    border: 1px solid var(--border-strong);
+    border-radius: var(--radius);
+    padding: 1.75rem 1.9rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow-md);
+  }
+  .pending-card::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 4px;
+    background: var(--brand-gradient);
+  }
+  .pending-card-head {
+    display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.85rem;
+  }
+  .pending-num {
+    font-family: var(--font-mono); font-weight: 600; font-size: 0.95rem;
+    color: var(--accent-ink);
+  }
+  .pending-status {
+    margin-left: auto;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--accent-ink);
+    background: var(--brand-gradient-soft);
+    border: 1px solid var(--border);
+    border-radius: 999px; padding: 0.2rem 0.65rem;
+  }
+  .pending-title { font-size: 1.3rem; margin: 0 0 0.7rem; }
+  .pending-body { color: var(--text-soft); font-size: 0.97rem; margin: 0 0 1rem; }
+  .pending-value {
+    display: flex; align-items: stretch; gap: 1rem; flex-wrap: wrap;
+    margin-top: 1.25rem;
+  }
+  .pending-value-from, .pending-value-to {
+    display: flex; flex-direction: column; gap: 0.15rem;
+    font-family: var(--font-mono); font-weight: 700; font-size: 1.6rem;
+    line-height: 1.1; padding: 0.75rem 1.1rem; border-radius: var(--radius-sm);
+    border: 1px solid var(--border);
+  }
+  .pending-value-from { color: var(--text-soft); background: var(--bg-sunken); }
+  .pending-value-to {
+    color: #fff; background: var(--brand-gradient); border-color: transparent;
+  }
+  .pending-value small {
+    font-family: var(--font-sans); font-weight: 600; font-size: 0.7rem;
+    letter-spacing: 0.04em; text-transform: uppercase; opacity: 0.85;
+  }
+  .pending-arrow {
+    display: grid; place-items: center; font-size: 1.5rem; color: var(--text-faint);
+  }
+  @media (max-width: 480px) {
+    .pending-arrow { transform: rotate(90deg); }
+    .pending-value { flex-direction: column; }
   }
 
   /* ---------- Compute panel ---------- */
