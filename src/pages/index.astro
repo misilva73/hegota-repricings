@@ -1,0 +1,443 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import EipCard from '../components/EipCard.astro';
+
+const base = import.meta.env.BASE_URL;
+const eipHref = (n: number) => `${base}/eips/${n}`;
+
+const all = await getCollection('eips');
+const minimal = all
+  .filter((e) => e.data.track === 'minimal')
+  .sort((a, b) => a.data.order - b.data.order);
+const comprehensive = all
+  .filter((e) => e.data.track === 'comprehensive')
+  .sort((a, b) => a.data.order - b.data.order);
+const eip7999 = comprehensive[0];
+
+const analysisUrl = 'https://ethresear.ch/t/scaling-in-hegota-using-the-eth-transfer-to-anchor-execution-and-bandwidth/25232';
+const fracgasUrl = 'https://misilva73.github.io/hegota-compute-repricing/fracgas.html';
+
+const stats = [
+  { value: '450M', label: 'Target gas limit', sub: 'symmetric optimum ≈ 422M' },
+  { value: 'D = 6s', label: 'PTC deadline', sub: '~25% exec / ~11% prop buffer' },
+  { value: '21,000', label: 'The anchor', sub: 'ETH-transfer gas, by design fixed' },
+  { value: '~4.44 MB', label: 'Payload at the limit', sub: '569ms + 0.443ms/KB to propagate' },
+];
+---
+
+<Base title="Hegota Repricings">
+  <!-- ===================== HERO ===================== -->
+  <section class="hero">
+    <div class="hero-glow" aria-hidden="true"></div>
+    <div class="container hero-inner">
+      <span class="hero-eyebrow">Hegota upgrade · gas repricing</span>
+      <h1 class="hero-title">
+        Scaling Ethereum to <span class="gradient-text">450M gas</span>,
+        anchored to the ETH transfer
+      </h1>
+      <p class="hero-lead">
+        The 21,000-gas ETH transfer can't get more expensive without breaking hardware
+        wallets — so it becomes the fixed reference point for how far blocks can safely
+        scale across <strong>execution</strong> and <strong>bandwidth</strong>. This is a
+        guide to the EIPs that turn that idea into a concrete path to 450M.
+      </p>
+      <div class="hero-cta">
+        <a class="btn btn--primary" href="#minimal">Explore the minimal set</a>
+        <a class="btn btn--ghost" href={analysisUrl} target="_blank" rel="noopener">Read the full analysis ↗</a>
+      </div>
+
+      <div class="stat-grid">
+        {stats.map((s) => (
+          <div class="stat">
+            <div class="stat-value gradient-text">{s.value}</div>
+            <div class="stat-label">{s.label}</div>
+            <div class="stat-sub">{s.sub}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== THE ANALYSIS ===================== -->
+  <section class="section" id="analysis">
+    <div class="container">
+      <div class="section-head prose">
+        <span class="eyebrow">The analysis</span>
+        <h2>One immovable point, two competing constraints</h2>
+        <p class="lead">
+          The <a href={analysisUrl} target="_blank" rel="noopener">anchor analysis</a> treats
+          the ETH transfer as irreducible by design and asks: given that fixed point, how
+          large can a block get before either execution time or network propagation becomes
+          the bottleneck?
+        </p>
+      </div>
+
+      <div class="constraint-grid">
+        <article class="constraint-card">
+          <div class="constraint-icon">⚙️</div>
+          <h3>Execution constraint</h3>
+          <p>
+            A worst-case execution ceiling of <strong>~100 Mgas/s</strong>, frozen in place
+            by the transfer cap. Push past it and validators can't keep up with the slot.
+          </p>
+        </article>
+        <article class="constraint-card">
+          <div class="constraint-icon">📡</div>
+          <h3>Bandwidth constraint</h3>
+          <p>
+            Block propagation modelled as <code>t = 569 + 0.443·KB</code> ms. Bigger blocks
+            take longer to reach the network — the binding limit for large payloads.
+          </p>
+        </article>
+        <article class="constraint-card">
+          <div class="constraint-icon">🎯</div>
+          <h3>The feasible optimum</h3>
+          <p>
+            Where the two windows meet — with 25% safety buffers — lands at
+            <strong>450M gas at a PTC deadline of D = 6s</strong>: a ~25% execution buffer
+            and an ~11% propagation buffer.
+          </p>
+        </article>
+      </div>
+
+      <div class="insight prose">
+        <h3>The catch: mixed blocks</h3>
+        <p>
+          A plain transfer block is the densest-but-smallest case — about
+          <code>0.01052 bytes/gas</code>. The danger is <strong>mixed blocks</strong> that
+          combine cheap calldata (16 gas/byte) with cold <code>SLOAD</code>s: these reach
+          <strong>2.25×</strong> the transfer line's byte density and would force the limit
+          back down. Closing that gap — cleanly, without repricing the transfer itself — is
+          what the repricing EIPs below are for.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== MINIMAL SET ===================== -->
+  <section class="section section--sunken" id="minimal">
+    <div class="container">
+      <div class="section-head prose">
+        <span class="eyebrow">The minimal path</span>
+        <h2>Three EIPs to reach 450M</h2>
+        <p class="lead">
+          The smallest set of changes that safely unlocks the higher limit. Each one closes
+          a specific hole between the gas a block charges and the resources it actually
+          consumes.
+        </p>
+      </div>
+
+      <div class="card-grid card-grid--3">
+        {minimal.map((e, i) => (
+          <EipCard
+            number={e.data.number}
+            title={e.data.title}
+            status={e.data.status}
+            summary={e.data.summary}
+            highlights={e.data.highlights}
+            accent={e.data.accent}
+            href={eipHref(e.data.number)}
+            index={i + 1}
+            needsReview={e.data.needsReview}
+          />
+        ))}
+      </div>
+
+      <p class="card-grid-note">
+        Take any one away and the bandwidth or state-growth constraint reasserts itself.
+        Together, they're the minimal viable bundle.
+      </p>
+    </div>
+  </section>
+
+  <!-- ===================== COMPUTE REPRICING ===================== -->
+  <section class="section" id="compute">
+    <div class="container">
+      <div class="compute-panel">
+        <div class="compute-copy prose">
+          <span class="eyebrow">A deliberate omission</span>
+          <h2>Why not reprice compute?</h2>
+          <p>
+            A natural question: shouldn't we also reprice the EVM's overpriced and
+            underpriced opcodes? The analysis says it's <strong>low leverage</strong>.
+            There are dozens of gas parameters to retune — roughly
+            <strong>62 operations</strong> are mispriced — and getting them all right is
+            fiddly and risky.
+          </p>
+          <p>
+            The payoff is small: compute waste falls from about
+            <strong>12.4% to 2.6%</strong>, which works out to only around a
+            <strong>10% gain in average throughput</strong>. A lot of surface area to
+            change, for a modest average improvement — so compute repricing is left out of
+            the minimal set.
+          </p>
+          <a class="btn btn--primary" href={fracgasUrl} target="_blank" rel="noopener">
+            See the fractional-gas evidence ↗
+          </a>
+          <p class="compute-attr">
+            Interactive breakdown of per-opcode mispricing on
+            <a href={fracgasUrl} target="_blank" rel="noopener">misilva73.github.io/hegota-compute-repricing</a>.
+          </p>
+        </div>
+        <div class="compute-viz" aria-hidden="true">
+          <div class="gauge">
+            <div class="gauge-track">
+              <div class="gauge-fill"></div>
+            </div>
+            <div class="gauge-readout">
+              <span class="gauge-num gradient-text">~10%</span>
+              <span class="gauge-cap">avg. throughput gain</span>
+            </div>
+          </div>
+          <ul class="viz-list">
+            <li><span>Gas params to retune</span><strong>dozens</strong></li>
+            <li><span>Mispriced operations</span><strong>~62</strong></li>
+            <li><span>Compute waste today</span><strong>~12.4%</strong></li>
+            <li><span>After repricing</span><strong>~2.6%</strong></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===================== EIP-7999 ===================== -->
+  {eip7999 && (
+    <section class="section section--sunken" id="eip-7999">
+      <div class="container">
+        <div class="section-head prose">
+          <span class="eyebrow">The comprehensive alternative</span>
+          <h2>EIP-7999: more complexity, far more upside</h2>
+          <p class="lead">
+            The minimal set is the smallest safe path. EIP-7999 reaches the same scaling
+            goal <em>and</em> rebuilds the fee market itself — a deeper, riskier change that
+            buys a much larger set of benefits.
+          </p>
+        </div>
+
+        <div class="seven-grid">
+          <div class="seven-card">
+            <EipCard
+              number={eip7999.data.number}
+              title={eip7999.data.title}
+              status={eip7999.data.status}
+              summary={eip7999.data.summary}
+              highlights={eip7999.data.highlights}
+              accent={eip7999.data.accent}
+              href={eipHref(eip7999.data.number)}
+              needsReview={eip7999.data.needsReview}
+            />
+          </div>
+          <div class="compare prose">
+            <h3>Minimal set vs. EIP-7999</h3>
+            <table class="compare-table">
+              <thead>
+                <tr><th></th><th>Minimal set</th><th>EIP-7999</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>Reaches 450M</td><td>✅</td><td>✅</td></tr>
+                <tr><td>Changes touched</td><td>A few gas constants</td><td>The fee market</td></tr>
+                <tr><td>Data as its own resource</td><td>—</td><td>✅ cheaper, decoupled</td></tr>
+                <tr><td>Exact state-growth control</td><td>Not addressed</td><td>✅ target-based</td></tr>
+                <tr><td>User-facing fees</td><td>Multiple markets</td><td>One <code>max_fee</code></td></tr>
+                <tr><td>Risk / complexity</td><td>Lower</td><td>Higher</td></tr>
+              </tbody>
+            </table>
+            <p>
+              EIP-7999 subsumes the data-pricing work of 8131 and 8279 as its “data
+              resource,” adds a dedicated state-growth resource, and introduces
+              <code>DATABASEFEE</code> / <code>STATEBASEFEE</code> opcodes — all under a
+              single ETH-denominated fee.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  )}
+</Base>
+
+<style>
+  /* ---------- Hero ---------- */
+  .hero { position: relative; overflow: hidden; padding: 5.5rem 0 4rem; }
+  .hero-glow {
+    position: absolute;
+    top: -30%; left: 50%; transform: translateX(-50%);
+    width: 1100px; height: 700px;
+    background: var(--brand-gradient-soft);
+    filter: blur(40px);
+    opacity: 0.9;
+    border-radius: 50%;
+    z-index: 0;
+    pointer-events: none;
+  }
+  .hero-inner { position: relative; z-index: 1; text-align: center; }
+  .hero-eyebrow {
+    display: inline-block;
+    font-size: 0.82rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--accent-ink);
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    padding: 0.4rem 0.9rem; border-radius: 999px;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 1.5rem;
+  }
+  .hero-title {
+    font-size: clamp(2.2rem, 5.5vw, 3.6rem);
+    font-weight: 800;
+    margin: 0 auto 1.25rem;
+    max-width: 16ch;
+  }
+  .hero-lead {
+    font-size: clamp(1.05rem, 2vw, 1.25rem);
+    color: var(--text-soft);
+    max-width: 60ch; margin: 0 auto 2rem;
+  }
+  .hero-cta { display: flex; gap: 0.8rem; justify-content: center; flex-wrap: wrap; }
+
+  .stat-grid {
+    margin-top: 3.5rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+  }
+  .stat {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.25rem 1rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .stat-value { font-size: 1.9rem; font-weight: 800; line-height: 1; }
+  .stat-label { margin-top: 0.5rem; font-weight: 600; font-size: 0.92rem; }
+  .stat-sub { color: var(--text-faint); font-size: 0.8rem; margin-top: 0.2rem; }
+
+  /* ---------- Section heads ---------- */
+  .section-head { margin-bottom: 2.5rem; }
+  .section-head h2 { font-size: clamp(1.7rem, 3.5vw, 2.3rem); margin: 0 0 0.75rem; }
+  .section-head .lead { margin: 0; }
+
+  /* ---------- Constraints ---------- */
+  .constraint-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.25rem;
+    margin-bottom: 2.5rem;
+  }
+  .constraint-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+  }
+  .constraint-icon {
+    font-size: 1.6rem;
+    width: 48px; height: 48px;
+    display: grid; place-items: center;
+    background: var(--brand-gradient-soft);
+    border-radius: 12px;
+    margin-bottom: 0.9rem;
+  }
+  .constraint-card h3 { font-size: 1.1rem; margin: 0 0 0.5rem; }
+  .constraint-card p { color: var(--text-soft); font-size: 0.95rem; margin: 0; }
+
+  .insight {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 1.5rem 1.75rem;
+    box-shadow: var(--shadow-sm);
+    max-width: none;
+  }
+  .insight h3 { margin: 0 0 0.5rem; font-size: 1.2rem; }
+  .insight p { margin: 0; color: var(--text-soft); }
+
+  /* ---------- Card grids ---------- */
+  .card-grid { display: grid; gap: 1.25rem; }
+  .card-grid--3 { grid-template-columns: repeat(3, 1fr); }
+  .card-grid-note {
+    text-align: center; color: var(--text-faint); font-size: 0.95rem;
+    margin: 1.75rem auto 0; max-width: 60ch;
+  }
+
+  /* ---------- Compute panel ---------- */
+  .compute-panel {
+    display: grid;
+    grid-template-columns: 1.2fr 0.8fr;
+    gap: 2.5rem;
+    align-items: center;
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: calc(var(--radius) + 6px);
+    padding: 2.5rem;
+    box-shadow: var(--shadow-md);
+  }
+  .compute-copy h2 { font-size: clamp(1.6rem, 3vw, 2.1rem); margin: 0 0 0.9rem; }
+  .compute-copy .btn { margin-top: 0.5rem; }
+  .compute-attr { font-size: 0.82rem; color: var(--text-faint); margin-top: 1rem; }
+  .compute-viz {
+    background: var(--bg-sunken);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+  }
+  .gauge { text-align: center; margin-bottom: 1.25rem; }
+  .gauge-track {
+    height: 10px; border-radius: 999px;
+    background: color-mix(in srgb, var(--text-faint) 22%, transparent);
+    overflow: hidden;
+  }
+  .gauge-fill {
+    height: 100%; width: 10%;
+    background: var(--brand-gradient);
+    border-radius: 999px;
+  }
+  .gauge-readout { margin-top: 0.85rem; }
+  .gauge-num { font-size: 2.4rem; font-weight: 800; display: block; line-height: 1; }
+  .gauge-cap { color: var(--text-faint); font-size: 0.82rem; }
+  .viz-list { list-style: none; padding: 0; margin: 0; }
+  .viz-list li {
+    display: flex; justify-content: space-between; gap: 1rem;
+    padding: 0.55rem 0; border-top: 1px solid var(--border);
+    font-size: 0.9rem;
+  }
+  .viz-list li span { color: var(--text-soft); }
+  .viz-list li strong { font-family: var(--font-mono); }
+
+  /* ---------- EIP-7999 ---------- */
+  .seven-grid {
+    display: grid;
+    grid-template-columns: 0.9fr 1.1fr;
+    gap: 1.75rem;
+    align-items: start;
+  }
+  .compare {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    box-shadow: var(--shadow-sm);
+    max-width: none;
+  }
+  .compare h3 { margin-top: 0; }
+  .compare-table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
+  .compare-table th, .compare-table td {
+    text-align: left; padding: 0.55rem 0.6rem; border-bottom: 1px solid var(--border);
+  }
+  .compare-table thead th { color: var(--text-faint); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  .compare-table td:first-child { color: var(--text-soft); }
+  .compare-table tbody td:not(:first-child) { font-weight: 600; }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 900px) {
+    .stat-grid { grid-template-columns: repeat(2, 1fr); }
+    .constraint-grid { grid-template-columns: 1fr; }
+    .card-grid--3 { grid-template-columns: 1fr; }
+    .compute-panel { grid-template-columns: 1fr; padding: 1.75rem; }
+    .seven-grid { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 480px) {
+    .stat-grid { grid-template-columns: 1fr; }
+  }
+</style>

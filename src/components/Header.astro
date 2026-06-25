@@ -1,0 +1,89 @@
+---
+const base = import.meta.env.BASE_URL;
+const home = base.endsWith('/') ? base : base + '/';
+const nav = [
+  { href: home + '#analysis', label: 'The analysis' },
+  { href: home + '#minimal', label: 'Minimal set' },
+  { href: home + '#compute', label: 'Compute repricing' },
+  { href: home + '#eip-7999', label: 'EIP-7999' },
+];
+---
+
+<header class="site-header">
+  <div class="container header-inner">
+    <a class="brand" href={home}>
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 28 44" width="20" height="31" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M14 0L13.7 1.02V30.4L14 30.7L27.4 22.78L14 0Z" fill="#fff" fill-opacity="0.9"/>
+          <path d="M14 0L0.6 22.78L14 30.7V16.43V0Z" fill="#fff" fill-opacity="0.65"/>
+          <path d="M14 33.24L13.83 33.45V43.92L14 44.4L27.41 25.33L14 33.24Z" fill="#fff" fill-opacity="0.9"/>
+          <path d="M14 44.4V33.24L0.6 25.33L14 44.4Z" fill="#fff" fill-opacity="0.65"/>
+        </svg>
+      </span>
+      <span class="brand-text">Hegota <strong>Repricings</strong></span>
+    </a>
+
+    <nav class="site-nav" aria-label="Primary">
+      {nav.map((item) => <a href={item.href}>{item.label}</a>)}
+    </nav>
+
+    <a class="btn btn--ghost header-cta" href="https://ethresear.ch/t/scaling-in-hegota-using-the-eth-transfer-to-anchor-execution-and-bandwidth/25232" target="_blank" rel="noopener">
+      Read the research →
+    </a>
+  </div>
+</header>
+
+<style>
+  .site-header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    backdrop-filter: saturate(160%) blur(12px);
+    -webkit-backdrop-filter: saturate(160%) blur(12px);
+    border-bottom: 1px solid var(--border);
+  }
+  .header-inner {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    height: 64px;
+  }
+  .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 1.05rem;
+    color: var(--text);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .brand:hover { text-decoration: none; }
+  .brand-text strong { color: var(--accent-ink); font-weight: 700; }
+  .brand-mark {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 10px;
+    background: var(--brand-gradient);
+    box-shadow: var(--shadow-sm);
+  }
+  .site-nav {
+    display: flex;
+    gap: 1.5rem;
+    margin-left: auto;
+    font-size: 0.95rem;
+  }
+  .site-nav a { color: var(--text-soft); font-weight: 500; }
+  .site-nav a:hover { color: var(--accent-ink); text-decoration: none; }
+  .header-cta { margin-left: 0.25rem; }
+
+  @media (max-width: 860px) {
+    .site-nav { display: none; }
+    .header-cta { margin-left: auto; }
+  }
+  @media (max-width: 520px) {
+    .header-cta { display: none; }
+  }
+</style>
