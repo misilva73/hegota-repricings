@@ -3,6 +3,8 @@
 A small, pretty website explaining the gas-repricing EIPs that let Ethereum scale to
 **450M gas** in the Hegota upgrade.
 
+🔗 **Live site:** <https://misilva73.github.io/hegota-repricings/>
+
 It covers:
 
 1. **The anchor analysis** — using the 21,000-gas ETH transfer as the fixed reference
@@ -18,7 +20,7 @@ It covers:
 
 - [Astro](https://astro.build) — static site, content in Markdown.
 - Deployed to **GitHub Pages** via `.github/workflows/deploy.yml` on every push to `main`.
-- Lives at `https://misilva73.github.io/hegota-repricings`.
+- Lives at <https://misilva73.github.io/hegota-repricings/>.
 
 ## Editing content
 

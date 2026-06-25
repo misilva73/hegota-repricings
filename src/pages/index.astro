@@ -38,7 +38,7 @@ const stats = [
       </h1>
       <p class="hero-lead">
         The 21,000-gas ETH transfer can't get more expensive without breaking hardware
-        wallets — so it becomes the fixed reference point for how far blocks can safely
+        wallets, so it becomes the fixed reference point for how far blocks can safely
         scale across <strong>execution</strong> and <strong>bandwidth</strong>. This is a
         guide to the EIPs that turn that idea into a concrete path to 450M.
       </p>
@@ -87,14 +87,14 @@ const stats = [
           <h3>Bandwidth constraint</h3>
           <p>
             Block propagation modelled as <code>t = 569 + 0.443·KB</code> ms. Bigger blocks
-            take longer to reach the network — the binding limit for large payloads.
+            take longer to reach the network, the binding limit for large payloads.
           </p>
         </article>
         <article class="constraint-card">
           <div class="constraint-icon">🎯</div>
           <h3>The feasible optimum</h3>
           <p>
-            Where the two windows meet — with 25% safety buffers — lands at
+            Where the two windows meet, with 25% safety buffers, lands at
             <strong>450M gas at a PTC deadline of D = 6s</strong>: a ~25% execution buffer
             and an ~11% propagation buffer.
           </p>
@@ -104,11 +104,11 @@ const stats = [
       <div class="insight prose">
         <h3>The catch: mixed blocks</h3>
         <p>
-          A plain transfer block is the densest-but-smallest case — about
+          A plain transfer block is the densest-but-smallest case, about
           <code>0.01052 bytes/gas</code>. The danger is <strong>mixed blocks</strong> that
           combine cheap calldata (16 gas/byte) with cold <code>SLOAD</code>s: these reach
           <strong>2.25×</strong> the transfer line's byte density and would force the limit
-          back down. Closing that gap — cleanly, without repricing the transfer itself — is
+          back down. Closing that gap, cleanly and without repricing the transfer itself, is
           what the repricing EIPs below are for.
         </p>
       </div>
@@ -158,7 +158,7 @@ const stats = [
         <p class="pending-body">
           Raising the limit also means revisiting the <strong>CPSB</strong> (cost per state
           byte) parameter from <strong>EIP-8037</strong>, which meters state growth. There's
-          no EIP for this yet — we first want to see how users respond to the current value in
+          no EIP for this yet; we first want to see how users respond to the current value in
           Glamsterdam before committing to a new one.
         </p>
         <p class="pending-body">
@@ -230,9 +230,11 @@ const stats = [
           <span class="eyebrow">The comprehensive alternative</span>
           <h2>EIP-7999: more complexity, far more upside</h2>
           <p class="lead">
-            The minimal set is the smallest safe path. EIP-7999 reaches the same scaling
-            goal <em>and</em> rebuilds the fee market itself — a deeper, riskier change that
-            buys a much larger set of benefits.
+            The minimal set is the smallest safe path to 450M. EIP-7999 can scale
+            <em>further</em>: by giving execution and bandwidth independent limits, it lets
+            execution climb toward its own ceiling instead of being capped by the
+            bandwidth-bound single limit, and makes resource control self-tuning, at the
+            cost of a deeper, riskier change.
           </p>
         </div>
 
@@ -248,6 +250,14 @@ const stats = [
               href={eipHref(eip7999.data.number)}
               needsReview={eip7999.data.needsReview}
             />
+            <div class="trade-card prose">
+              <p>
+                The real trade is <strong>scope for leverage</strong>: 7999 subsumes the
+                data-pricing work of 8131/8279 as its “data resource” and adds a self-tuning
+                state resource, so future scaling needs no floor or CPSB re-tuning, at the
+                cost of a deeper, riskier change to the fee market itself.
+              </p>
+            </div>
           </div>
           <div class="compare prose">
             <h3>Minimal set vs. EIP-7999</h3>
@@ -256,20 +266,16 @@ const stats = [
                 <tr><th></th><th>Minimal set</th><th>EIP-7999</th></tr>
               </thead>
               <tbody>
-                <tr><td>Reaches 450M</td><td>✅</td><td>✅</td></tr>
-                <tr><td>Changes touched</td><td>A few gas constants</td><td>The fee market</td></tr>
-                <tr><td>Data as its own resource</td><td>—</td><td>✅ cheaper, decoupled</td></tr>
-                <tr><td>Exact state-growth control</td><td>Not addressed</td><td>✅ target-based</td></tr>
-                <tr><td>User-facing fees</td><td>Multiple markets</td><td>One <code>max_fee</code></td></tr>
-                <tr><td>Risk / complexity</td><td>Lower</td><td>Higher</td></tr>
+                <tr><td>Scaling reach</td><td>450M, one coupled limit</td><td>✅ 450M+ execution headroom</td></tr>
+                <tr><td>Execution vs. bandwidth</td><td>One coupled limit</td><td>✅ Independent limits</td></tr>
+                <tr><td>Re-tuning as limit grows</td><td>Manual: CPSB + floor each fork</td><td>✅ Self-tuning base fees</td></tr>
+                <tr><td>State-growth control</td><td>Manually tuned, prone to errors</td><td>✅ Target-based, exact average</td></tr>
+                <tr><td>User-facing fees</td><td>Multiple markets</td><td>✅ One <code>max_fee</code></td></tr>
+                <tr><td>Scope of change</td><td>A few gas constants</td><td>The whole fee market</td></tr>
+                <tr><td>Block building</td><td>Unchanged</td><td>Multidimensional, harder</td></tr>
+                <tr><td>Risk / maturity</td><td>Lower, shippable piecemeal</td><td>Higher, one bundle</td></tr>
               </tbody>
             </table>
-            <p>
-              EIP-7999 subsumes the data-pricing work of 8131 and 8279 as its “data
-              resource,” adds a dedicated state-growth resource, and introduces
-              <code>DATABASEFEE</code> / <code>STATEBASEFEE</code> opcodes — all under a
-              single ETH-denominated fee.
-            </p>
           </div>
         </div>
       </div>
@@ -493,6 +499,17 @@ const stats = [
     gap: 1.75rem;
     align-items: start;
   }
+  .seven-card { display: flex; flex-direction: column; gap: 1.25rem; }
+  .trade-card {
+    background: var(--bg-elev);
+    border: 1px solid var(--border);
+    border-left: 4px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 1.25rem 1.5rem;
+    box-shadow: var(--shadow-sm);
+    max-width: none;
+  }
+  .trade-card p { margin: 0; color: var(--text-soft); font-size: 1.05rem; line-height: 1.6; }
   .compare {
     background: var(--bg-elev);
     border: 1px solid var(--border);
