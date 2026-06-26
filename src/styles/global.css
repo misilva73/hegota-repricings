@@ -1,61 +1,41 @@
 /* ============================================================
-   Hegota Repricings — Ethereum-branded design system
+   Hegota Repricings — Neo-brutalist design system
    Edit the tokens below to retheme the whole site.
    ============================================================ */
 
 :root {
-  /* Ethereum palette */
-  --eth-purple: #627eea;
-  --eth-indigo: #5b50e8;
-  --eth-violet: #7a5cff;
-  --eth-teal: #12c2b0;
-  --eth-ink: #0f1226;
+  /* Brutalist palette */
+  --cobalt: #2b50ff;
+  --soft: #ffffff;
+  --ink: #111111;
 
-  /* Semantic tokens (light) */
-  --bg: #fbfbfe;
+  /* Semantic tokens */
+  --bg: #f4f3ee;
   --bg-elev: #ffffff;
-  --bg-sunken: #f3f3fb;
-  --border: #e7e7f2;
-  --border-strong: #d6d6e8;
-  --text: #1a1c30;
-  --text-soft: #565a78;
-  --text-faint: #8a8ea8;
-  --accent: var(--eth-violet);
-  --accent-ink: #4b3bd6;
+  --bg-sunken: #eceae2;
+  --border: #111111;
+  --border-strong: #111111;
+  --bw: 2px;                /* structural border width */
+  --text: #111111;
+  --text-soft: #333333;
+  --text-faint: #555555;
+  --accent: #2b50ff;
+  --accent-ink: #1a37cc;
 
-  --brand-gradient: linear-gradient(125deg, #627eea 0%, #7a5cff 45%, #12c2b0 100%);
-  --brand-gradient-soft: linear-gradient(125deg, rgba(98, 126, 234, 0.14), rgba(122, 92, 255, 0.14) 50%, rgba(18, 194, 176, 0.14));
+  --brand-gradient: linear-gradient(90deg, #2b50ff, #2b50ff);
+  --brand-gradient-soft: var(--soft);
 
-  --radius: 16px;
-  --radius-sm: 10px;
-  --shadow-sm: 0 1px 2px rgba(15, 18, 38, 0.05), 0 1px 3px rgba(15, 18, 38, 0.06);
-  --shadow-md: 0 8px 24px rgba(36, 30, 90, 0.08), 0 2px 6px rgba(36, 30, 90, 0.05);
-  --shadow-lg: 0 24px 60px rgba(36, 30, 90, 0.14);
+  --radius: 3px;
+  --radius-sm: 2px;
+  --shadow-sm: 3px 3px 0 var(--ink);
+  --shadow-md: 5px 5px 0 var(--ink);
+  --shadow-lg: 8px 8px 0 var(--ink);
 
-  --maxw: 1120px;
+  --maxw: 940px;
   --maxw-prose: 760px;
 
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, monospace;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #0c0d1a;
-    --bg-elev: #14152a;
-    --bg-sunken: #101127;
-    --border: #232543;
-    --border-strong: #2f3157;
-    --text: #eef0ff;
-    --text-soft: #b3b6d6;
-    --text-faint: #7c80a6;
-    --accent: #9d8bff;
-    --accent-ink: #b6a8ff;
-    --eth-ink: #eef0ff;
-    --brand-gradient-soft: linear-gradient(125deg, rgba(98, 126, 234, 0.22), rgba(122, 92, 255, 0.22) 50%, rgba(18, 194, 176, 0.18));
-    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4), 0 2px 6px rgba(0, 0, 0, 0.3);
-    --shadow-lg: 0 24px 60px rgba(0, 0, 0, 0.55);
-  }
 }
 
 *,
@@ -82,10 +62,10 @@ body {
 }
 
 h1, h2, h3, h4 {
-  line-height: 1.15;
-  letter-spacing: -0.02em;
+  line-height: 1.1;
+  letter-spacing: -0.03em;
   color: var(--text);
-  font-weight: 700;
+  font-weight: 900;
 }
 
 a {
@@ -102,21 +82,19 @@ code {
   background: var(--bg-sunken);
   border: 1px solid var(--border);
   padding: 0.12em 0.4em;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
 }
 
 pre {
-  background: var(--eth-ink);
-  color: #e9ecff;
+  background: var(--ink);
+  color: #f4f3ee;
   padding: 1.1rem 1.25rem;
+  border: var(--bw) solid var(--ink);
   border-radius: var(--radius-sm);
   overflow-x: auto;
   font-size: 0.86rem;
   line-height: 1.55;
   box-shadow: var(--shadow-sm);
-}
-@media (prefers-color-scheme: dark) {
-  pre { background: #05060f; border: 1px solid var(--border); }
 }
 pre code { background: none; border: none; padding: 0; color: inherit; }
 
@@ -140,9 +118,10 @@ hr {
 
 .eyebrow {
   display: inline-block;
+  font-family: var(--font-mono);
   font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--accent-ink);
   margin-bottom: 0.85rem;
@@ -159,27 +138,32 @@ hr {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.97rem;
   padding: 0.7rem 1.25rem;
-  border-radius: 999px;
-  border: 1px solid transparent;
+  border-radius: var(--radius);
+  border: var(--bw) solid var(--ink);
   cursor: pointer;
-  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
   text-decoration: none;
 }
-.btn:hover { text-decoration: none; transform: translateY(-1px); }
-.btn--primary {
-  background: var(--brand-gradient);
-  color: #fff;
+.btn:hover {
+  text-decoration: none;
+  transform: translate(-2px, -2px);
   box-shadow: var(--shadow-md);
+}
+.btn:active { transform: translate(0, 0); box-shadow: var(--shadow-sm); }
+.btn--primary {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: var(--shadow-sm);
 }
 .btn--ghost {
   background: var(--bg-elev);
-  border-color: var(--border-strong);
   color: var(--text);
+  box-shadow: var(--shadow-sm);
 }
-.btn--ghost:hover { border-color: var(--accent); color: var(--accent-ink); }
+.btn--ghost:hover { color: var(--accent-ink); }
 
 /* Tables in prose */
 .prose table, .markdown table {

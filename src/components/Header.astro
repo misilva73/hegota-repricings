@@ -38,10 +38,10 @@ const nav = [
     position: sticky;
     top: 0;
     z-index: 50;
-    background: color-mix(in srgb, var(--bg) 82%, transparent);
+    background: color-mix(in srgb, var(--bg) 88%, transparent);
     backdrop-filter: saturate(160%) blur(12px);
     -webkit-backdrop-filter: saturate(160%) blur(12px);
-    border-bottom: 1px solid var(--border);
+    border-bottom: var(--bw) solid var(--ink);
   }
   .header-inner {
     display: flex;
@@ -65,8 +65,9 @@ const nav = [
     height: 34px;
     display: grid;
     place-items: center;
-    border-radius: 10px;
-    background: var(--brand-gradient);
+    border-radius: var(--radius-sm);
+    border: var(--bw) solid var(--ink);
+    background: var(--accent);
     box-shadow: var(--shadow-sm);
   }
   .site-nav {

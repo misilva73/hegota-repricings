@@ -212,7 +212,6 @@ const stats = [
             </div>
           </div>
           <ul class="viz-list">
-            <li><span>Gas params to retune</span><strong>dozens</strong></li>
             <li><span>Mispriced operations</span><strong>~62</strong></li>
             <li><span>Throughput loss today</span><strong>~12.4%</strong></li>
             <li><span>After repricing</span><strong>~2.6%</strong></li>
@@ -266,17 +265,54 @@ const stats = [
                 <tr><th></th><th>Minimal set</th><th>EIP-7999</th></tr>
               </thead>
               <tbody>
-                <tr><td>Scaling reach</td><td>450M, one coupled limit</td><td>✅ 450M+ execution headroom</td></tr>
+                <tr class="compare-group"><td colspan="3">What it buys you</td></tr>
                 <tr><td>Execution vs. bandwidth</td><td>One coupled limit</td><td>✅ Independent limits</td></tr>
-                <tr><td>Re-tuning as limit grows</td><td>Manual: CPSB + floor each fork</td><td>✅ Self-tuning base fees</td></tr>
-                <tr><td>State-growth control</td><td>Manually tuned, prone to errors</td><td>✅ Target-based, exact average</td></tr>
-                <tr><td>User-facing fees</td><td>Multiple markets</td><td>✅ One <code>max_fee</code></td></tr>
-                <tr><td>Scope of change</td><td>A few gas constants</td><td>The whole fee market</td></tr>
-                <tr><td>Block building</td><td>Unchanged</td><td>Multidimensional, harder</td></tr>
-                <tr><td>Risk / maturity</td><td>Lower, shippable piecemeal</td><td>Higher, one bundle</td></tr>
+                <tr><td>Long-run state growth</td><td>Manually tuned, prone to errors</td><td>✅ Target-based, exact average</td></tr>
+                <tr><td>User-facing fees</td><td>Multiple markets</td><td>✅ One <code>max_fee</code> in ETH</td></tr>
+                <tr class="compare-group"><td colspan="3">What it costs</td></tr>
+                <tr><td>Scope of change</td><td>A few gas constants</td><td>⚠️ The whole fee market</td></tr>
+                <tr><td>Fee estimation</td><td>Per-market, familiar</td><td>⚠️ Predict usage across resources</td></tr>
+                <tr><td>Risk / maturity</td><td>Lower, small changes</td><td>⚠️ Higher, one bundle</td></tr>
               </tbody>
             </table>
           </div>
+        </div>
+
+        <div class="scaling prose">
+          <h3>Tuning the budget split to scale execution further</h3>
+          <p>
+            With independent limits, the <strong>PTC deadline</strong> becomes a dial. The
+            attestation deadline is fixed at 3s, so an earlier PTC deadline <code>D</code>
+            shrinks the propagation window (less data) and lengthens the execution window
+            (more execution). At the same <strong>25% safety buffer</strong> the anchor
+            analysis uses:
+          </p>
+          <table class="compare-table scaling-table">
+            <thead>
+              <tr>
+                <th>PTC deadline <code>D</code></th>
+                <th>Exec window</th>
+                <th>Prop window</th>
+                <th>Max execution</th>
+                <th>Max data</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr><td>4.0s</td><td>8.0s</td><td>1.0s</td><td>600M gas</td><td>0.41 MB · 7M data-gas</td></tr>
+              <tr><td>4.5s</td><td>7.5s</td><td>1.5s</td><td>562M gas</td><td>1.26 MB · 20M data-gas</td></tr>
+              <tr><td>5.0s</td><td>7.0s</td><td>2.0s</td><td>525M gas</td><td>2.10 MB · 34M data-gas</td></tr>
+              <tr><td>5.5s</td><td>6.5s</td><td>2.5s</td><td>488M gas</td><td>2.95 MB · 47M data-gas</td></tr>
+              <tr class="scaling-anchor"><td>6.0s</td><td>6.0s</td><td>3.0s</td><td>450M gas</td><td>3.79 MB · 61M data-gas</td></tr>
+            </tbody>
+          </table>
+          <p class="scaling-note">
+            Execution limit is <code>0.75 · 100 Mgas/s · (12 − D)</code>; data is the bytes that
+            fit <code>t = 569 + 0.443·KB</code> ms within <code>0.75·(D − 3)</code>, priced at 16
+            gas/byte. The coupled single limit caps at ~361M at <code>D = 6s</code> under a true
+            25% propagation buffer — 450M only came from thinning that buffer to ~11%. Independent
+            limits let execution take the whole window: 450M at <code>D = 6s</code>, up to
+            <strong>600M at <code>D = 4s</code></strong>, while data stays bounded on its own.
+          </p>
         </div>
       </div>
     </section>
@@ -291,8 +327,8 @@ const stats = [
     top: -30%; left: 50%; transform: translateX(-50%);
     width: 1100px; height: 700px;
     background: var(--brand-gradient-soft);
-    filter: blur(40px);
-    opacity: 0.9;
+    filter: blur(70px);
+    opacity: 0.3;
     border-radius: 50%;
     z-index: 0;
     pointer-events: none;
@@ -300,11 +336,12 @@ const stats = [
   .hero-inner { position: relative; z-index: 1; text-align: center; }
   .hero-eyebrow {
     display: inline-block;
-    font-size: 0.82rem; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase;
+    font-family: var(--font-mono);
+    font-size: 0.82rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase;
     color: var(--accent-ink);
-    background: var(--bg-elev);
-    border: 1px solid var(--border);
-    padding: 0.4rem 0.9rem; border-radius: 999px;
+    background: var(--soft);
+    border: var(--bw) solid var(--ink);
+    padding: 0.4rem 0.9rem; border-radius: var(--radius);
     box-shadow: var(--shadow-sm);
     margin-bottom: 1.5rem;
   }
@@ -329,7 +366,7 @@ const stats = [
   }
   .stat {
     background: var(--bg-elev);
-    border: 1px solid var(--border);
+    border: var(--bw) solid var(--border);
     border-radius: var(--radius);
     padding: 1.25rem 1rem;
     box-shadow: var(--shadow-sm);
@@ -339,7 +376,7 @@ const stats = [
   .stat-sub { color: var(--text-faint); font-size: 0.8rem; margin-top: 0.2rem; }
 
   /* ---------- Section heads ---------- */
-  .section-head { margin-bottom: 2.5rem; }
+  .section-head { margin-bottom: 2.5rem; max-width: none; }
   .section-head h2 { font-size: clamp(1.7rem, 3.5vw, 2.3rem); margin: 0 0 0.75rem; }
   .section-head .lead { margin: 0; }
 
@@ -352,7 +389,7 @@ const stats = [
   }
   .constraint-card {
     background: var(--bg-elev);
-    border: 1px solid var(--border);
+    border: var(--bw) solid var(--border);
     border-radius: var(--radius);
     padding: 1.5rem;
     box-shadow: var(--shadow-sm);
@@ -362,7 +399,8 @@ const stats = [
     width: 48px; height: 48px;
     display: grid; place-items: center;
     background: var(--brand-gradient-soft);
-    border-radius: 12px;
+    border: var(--bw) solid var(--ink);
+    border-radius: var(--radius-sm);
     margin-bottom: 0.9rem;
   }
   .constraint-card h3 { font-size: 1.1rem; margin: 0 0 0.5rem; }
@@ -370,7 +408,7 @@ const stats = [
 
   .insight {
     background: var(--bg-elev);
-    border: 1px solid var(--border);
+    border: var(--bw) solid var(--border);
     border-left: 4px solid var(--accent);
     border-radius: var(--radius);
     padding: 1.5rem 1.75rem;
@@ -391,7 +429,7 @@ const stats = [
     margin: 2rem auto 0;
     max-width: 720px;
     background: var(--bg-elev);
-    border: 1px solid var(--border-strong);
+    border: var(--bw) solid var(--border-strong);
     border-radius: var(--radius);
     padding: 1.75rem 1.9rem;
     position: relative;
@@ -414,11 +452,10 @@ const stats = [
   }
   .pending-status {
     margin-left: auto;
-    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em;
-    text-transform: uppercase; color: var(--accent-ink);
-    background: var(--brand-gradient-soft);
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.05em;
+    text-transform: uppercase; color: var(--text-faint);
     border: 1px solid var(--border);
-    border-radius: 999px; padding: 0.2rem 0.65rem;
+    border-radius: var(--radius-sm); padding: 0.15rem 0.55rem;
   }
   .pending-title { font-size: 1.3rem; margin: 0 0 0.7rem; }
   .pending-body { color: var(--text-soft); font-size: 0.97rem; margin: 0 0 1rem; }
@@ -430,7 +467,7 @@ const stats = [
     display: flex; flex-direction: column; gap: 0.15rem;
     font-family: var(--font-mono); font-weight: 700; font-size: 1.6rem;
     line-height: 1.1; padding: 0.75rem 1.1rem; border-radius: var(--radius-sm);
-    border: 1px solid var(--border);
+    border: var(--bw) solid var(--border);
   }
   .pending-value-from { color: var(--text-soft); background: var(--bg-sunken); }
   .pending-value-to {
@@ -455,7 +492,7 @@ const stats = [
     gap: 2.5rem;
     align-items: center;
     background: var(--bg-elev);
-    border: 1px solid var(--border);
+    border: var(--bw) solid var(--border);
     border-radius: calc(var(--radius) + 6px);
     padding: 2.5rem;
     box-shadow: var(--shadow-md);
@@ -465,20 +502,21 @@ const stats = [
   .compute-attr { font-size: 0.82rem; color: var(--text-faint); margin-top: 1rem; }
   .compute-viz {
     background: var(--bg-sunken);
-    border: 1px solid var(--border);
+    border: var(--bw) solid var(--border);
     border-radius: var(--radius);
     padding: 1.5rem;
   }
   .gauge { text-align: center; margin-bottom: 1.25rem; }
   .gauge-track {
-    height: 10px; border-radius: 999px;
-    background: color-mix(in srgb, var(--text-faint) 22%, transparent);
+    height: 14px; border-radius: var(--radius-sm);
+    border: var(--bw) solid var(--ink);
+    background: var(--bg-elev);
     overflow: hidden;
   }
   .gauge-fill {
     height: 100%; width: 10%;
-    background: var(--brand-gradient);
-    border-radius: 999px;
+    background: var(--accent);
+    border-right: var(--bw) solid var(--ink);
   }
   .gauge-readout { margin-top: 0.85rem; }
   .gauge-num { font-size: 2.4rem; font-weight: 800; display: block; line-height: 1; }
@@ -502,7 +540,7 @@ const stats = [
   .seven-card { display: flex; flex-direction: column; gap: 1.25rem; }
   .trade-card {
     background: var(--bg-elev);
-    border: 1px solid var(--border);
+    border: var(--bw) solid var(--border);
     border-left: 4px solid var(--accent);
     border-radius: var(--radius);
     padding: 1.25rem 1.5rem;
@@ -512,7 +550,7 @@ const stats = [
   .trade-card p { margin: 0; color: var(--text-soft); font-size: 1.05rem; line-height: 1.6; }
   .compare {
     background: var(--bg-elev);
-    border: 1px solid var(--border);
+    border: var(--bw) solid var(--border);
     border-radius: var(--radius);
     padding: 1.75rem;
     box-shadow: var(--shadow-sm);
@@ -526,6 +564,31 @@ const stats = [
   .compare-table thead th { color: var(--text-faint); font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.05em; }
   .compare-table td:first-child { color: var(--text-soft); }
   .compare-table tbody td:not(:first-child) { font-weight: 600; }
+  .compare-group td {
+    color: var(--accent-ink); font-size: 0.72rem; font-weight: 700;
+    letter-spacing: 0.07em; text-transform: uppercase;
+    padding-top: 1rem; border-bottom: var(--bw) solid var(--border);
+  }
+  .compare-table tbody tr:first-child .compare-group,
+  .compare-group:first-child td { padding-top: 0; }
+
+  .scaling {
+    margin-top: 1.75rem;
+    background: var(--bg-elev);
+    border: var(--bw) solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    box-shadow: var(--shadow-sm);
+    max-width: none;
+  }
+  .scaling h3 { margin-top: 0; }
+  .scaling > p { color: var(--text-soft); margin: 0; }
+  .scaling-table { margin: 1.25rem 0; }
+  .scaling-table td:first-child { font-family: var(--font-mono); color: var(--text); font-weight: 600; }
+  .scaling-table tbody td:not(:first-child) { font-weight: 600; }
+  .scaling-anchor td { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+  .scaling-anchor td:first-child { color: var(--accent-ink); }
+  .scaling-note { font-size: 0.88rem; color: var(--text-faint); margin: 0; }
 
   /* ---------- Responsive ---------- */
   @media (max-width: 900px) {
